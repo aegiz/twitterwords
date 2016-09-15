@@ -14,5 +14,5 @@ A second script (dev/main2.js) can help really checking if the word exist or not
 
 ##TODO :
 
-- create a script which is querying google looking for "@auser" occurences
-- find the list of names
+- create a script which is getting how many tweets have been posted by a user and when he registered
+- See if there is a correlation with the number of new subscribers in Twitter.
