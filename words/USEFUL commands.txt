@@ -1,0 +1,9 @@
+USEFUL commands:
+
+Remove dupplicates and save the file:
+awk '!seen[$0]++' liste_des_prenoms_2004_a_2012.txt > outputfile.txt
+
+
+Remove accents :
+
+sed -i -e 'y/âāáǎàēéěèêëīíǐïìîōǒòôūúǔùǖǘǚǜûĀÁǍÀĒÉĚÈĪÍǏÌŌÓǑÒŪÚǓÙǕǗǙǛ/aaaaaeeeeeeiiiiiioooouuuuuüüüüAAAAEEEEIIIIOOOOUUUUÜÜÜÜ/' file.txt
