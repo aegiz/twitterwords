@@ -1,0 +1,62 @@
+[
+  {
+    "username": "@Aaliyah",
+    "status": "aaliyah (@aaliyah) | Twitter",
+    "joinDate": {
+      "hour": "19:00",
+      "year": "2008",
+      "day": "24",
+      "month": "3"
+    },
+    "tweets": "1",
+    "valid": true
+  },
+  {
+    "username": "@Aaron",
+    "status": "Aaron LaBerge (@aaron) | Twitter",
+    "joinDate": {
+      "hour": "09:05",
+      "year": "2006",
+      "day": "27",
+      "month": "8"
+    },
+    "tweets": "1553",
+    "valid": true
+  },
+  {
+    "username": "@Abd",
+    "status": "عبدالعزيز الخضيري (@ABD) | Twitter",
+    "joinDate": {
+      "hour": "11:32",
+      "year": "2012",
+      "day": "24",
+      "month": "3"
+    },
+    "tweets": "34000",
+    "valid": true
+  },
+  {
+    "username": "@Abdallah",
+    "status": "INSTALACIONESABDALAH (@abdallah) | Twitter",
+    "joinDate": {
+      "hour": "12:15",
+      "year": "2009",
+      "day": "19",
+      "month": "1"
+    },
+    "tweets": "25",
+    "valid": true
+  },
+  {
+    "username": "@Abdel",
+    "status": "Tweets avec des réponses de skeif abdelaziz (@abdel) | Twitter",
+    "joinDate": {
+      "hour": "15:18",
+      "year": "2009",
+      "day": "21",
+      "month": "9"
+    },
+    "tweets": "25",
+    "valid": true
+  }
+]
