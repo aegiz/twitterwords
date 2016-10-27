@@ -24,6 +24,12 @@
 	 stroke: red;
 	 stroke-width: 0.4px;
 	}
+	
+	path { 
+	    stroke: steelblue;
+	    stroke-width: 2;
+	    fill: none;
+	}
 
 	</style>
 </head>
@@ -32,73 +38,128 @@
 
 <script src="http://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
 	<script src="http://underscorejs.org/underscore-min.js"></script>
-<script src="http://d3js.org/d3.v3.min.js"></script>
+<script src="./d3.v3.js"></script>
 
 <script>
 
-var size = $("body").width();
+var graph1 = [];
 
-// Comon params for graph
+$.getJSON("name.json", function(json) {
+	// First, let's just get the date of arrival among the data
+	var one = _.map(json, function(usr) {
+		if(!_.isEmpty(usr.joinDate)) {
+			var date =  usr.joinDate.year+ "-" + (usr.joinDate.month.length == 1 ? "0" : "") + usr.joinDate.month;
+			return { 
+				"date": date,
+				"total": 1
+			};
+		}
+	});
+	// Clear the undefined ...
+	var clearUndefined = _.filter(one, function (param) {
+		 return param !== undefined;
+	 });
 
-var margin = {top: 10, right: 50, bottom: 20, left: 50},
-	width = size - margin.left - margin.right,
-	height = 800 - margin.top - margin.bottom;
+	// Secondly, get the total of user per month
+	var two = _.reduce(clearUndefined, function(prev, curr) {
+		 var found = _.find(prev, function(el) { return el.date === curr.date; });
+		 found ? (found.total += curr.total) : prev.push(_.clone(curr));
+		 return prev;
+	}, []);
 
-var svg = d3.select("body").append("svg")
-	.attr("width", width + margin.left + margin.right)
-	.attr("height", height + margin.top + margin.bottom)
-	.append("g")
-	.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+	// Third, sort the result by date
+	var three = _.sortBy(two, function(o) { return o.date; })
+	// Fourth update the total to get the previous result in consideration
+	var previous = 0;
+	var four = _.map(three, function(val) {
+		previous = previous + val.total;
+		return {
+			"date": val.date,
+			"total": previous
+		}
+	});
 
-// X axis
+	graph1 = four;
 
-var x = d3.time.scale()
-	.domain([new Date(2006, 0, 1), new Date(2016, 11, 31)])
-	.nice(d3.time.week)
-	.range([0, width]);
+	var size = $("body").width();
 
-var xaxis = d3.svg.axis().scale(x)
-	.orient("bottom").ticks(16).tickSize(10, 0);
+	// Common params for graph
 
-var xaxisg = svg.append("g")
-	.attr("class", "x axis")
-	.attr("transform", "translate(0," + height + ")")
-	.call(xaxis);
+	var margin = {top: 10, right: 50, bottom: 20, left: 50},
+		width = size - margin.left - margin.right,
+		height = 800 - margin.top - margin.bottom;
 
-xaxisg.selectAll("line").data(x.ticks(120), function(d) { return d; })
-	.enter()
-	.append("line")
-	.attr("class", "minor")
-	.attr("y1", 0)
-	.attr("y2", 5)
-	.attr("x1", x)
-	.attr("x2", x);
+	var svg = d3.select("body").append("svg")
+		.attr("width", width + margin.left + margin.right)
+		.attr("height", height + margin.top + margin.bottom)
+		.append("g")
+		.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-// Y axis
+	// X axis
 
-var y0 = d3.scale.linear().range([height, 0]);
-var y1 = d3.scale.linear().range([height, 0]);
+	var x = d3.time.scale()
+		.domain([new Date(2006, 0, 1), new Date(2016, 11, 31)])
+		.nice(d3.time.week)
+		.range([0, width]);
 
-var yAxisLeft = d3.svg.axis().scale(y0)
-	.orient("left").ticks(5);
+	var xaxis = d3.svg.axis().scale(x)
+		.orient("bottom").ticks(16).tickSize(10, 0);
 
-var yAxisRight = d3.svg.axis().scale(y1)
-	.orient("right").ticks(5); 
+	var xaxisg = svg.append("g")
+		.attr("class", "x axis")
+		.attr("transform", "translate(0," + height + ")")
+		.call(xaxis);
 
-svg.append("g")
-  .attr("class", "y axis")
-  .style("fill", "steelblue")
-  .call(yAxisLeft);	
+	xaxisg.selectAll("line").data(x.ticks(120), function(d) { return d; })
+		.enter()
+		.append("line")
+		.attr("class", "minor")
+		.attr("y1", 0)
+		.attr("y2", 5)
+		.attr("x1", x)
+		.attr("x2", x);
 
-svg.append("g")				
-  .attr("class", "y axis")	
-  .attr("transform", "translate(" + width + " ,0)")	
-  .style("fill", "red")		
-  .call(yAxisRight);
+	// Y axis
 
-// DATAs
+	var y0 = d3.scale.linear().range([height, 0]);
+	y0.domain([0, graph1[graph1.length - 1].total]);
 
+	var y1 = d3.scale.linear().range([height, 0]);
 
+	var yAxisLeft = d3.svg.axis().scale(y0)
+		.orient("left").ticks(5);
+
+	var yAxisRight = d3.svg.axis().scale(y1)
+		.orient("right").ticks(5); 
+
+	svg.append("g")
+		.attr("class", "y axis")
+		.style("fill", "steelblue")
+		.call(yAxisLeft);	
+
+	svg.append("g")				
+		.attr("class", "y axis")	
+		.attr("transform", "translate(" + width + " ,0)")	
+		.style("fill", "red")		
+		.call(yAxisRight);
+
+	// LINE
+	var line = d3.svg.line()
+		.x(function(d) { return x(d.date); })
+		.y(function(d) { return y0(d.total); });
+
+	// DATAs
+	var parseDate = d3.time.format("%Y-%m").parse;
+
+	graph1.forEach(function(d) {
+        d.date = parseDate(d.date);
+        d.total = +d.total;
+    });
+	svg.append("path")        // Add the valueline path.
+		.style("stroke", "blue")
+		.attr("d", line(graph1));
+
+});
 
 </script>
 
