@@ -3,53 +3,66 @@
 
 <head>
 	<style>
-
-	.axis text {
-	 font: 10px sans-serif;
-	}
-	
-	.axis path {
-	 fill: none;
-	 stroke: #000;
-	 stroke-width: 2.5px;
-	 shape-rendering: crispEdges;
-	}
-	.axis line {
-	 fill: none;
-	 stroke: green;
-	 stroke-width: 1.6px;
-	}
-
-	.axis .minor {
-	 stroke: red;
-	 stroke-width: 0.4px;
-	}
-	
-	path { 
-	    stroke: steelblue;
-	    stroke-width: 2;
-	    fill: none;
-	}
-
+		path {
+			fill: none;
+			stroke: grey;
+			stroke-width: 1px;
+		}
+		.axis text, .label {
+			font: 12px sans-serif;
+		}
+		.label--yright {
+			fill: red;
+		}
+		.label--yleft {
+			fill: steelblue;
+		}
+		.axis line {
+			fill: none;
+			stroke: grey;
+			stroke-width: 1px;
+			opacity: 0.5;
+		}
+		.axis--yright {
+			fill: red;
+		}
+		.axis--yleft {
+			fill: steelblue;
+		}
+		.axis--yleft .tick line {
+			stroke: steelblue;
+			stroke-width: 1px;
+		}
+		.line1 {
+			stroke: steelblue;
+			stroke-width: 2px;
+			fill: none;
+		}
+		.bars {
+			stroke: red;
+		}
 	</style>
 </head>
 
 <body>
 
-<script src="http://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
 	<script src="http://underscorejs.org/underscore-min.js"></script>
-<script src="./d3.v3.js"></script>
+	<script src="./d3.v3.js"></script>
 
-<script>
+	<script>
 
-var graph1 = [];
+	// Data processing
 
-$.getJSON("name.json", function(json) {
+	var graph1 = [];
+	var graph2 = [];
+
+		$.getJSON("name.json", function(json) {
 	// First, let's just get the date of arrival among the data
 	var one = _.map(json, function(usr) {
 		if(!_.isEmpty(usr.joinDate)) {
 			var date =  usr.joinDate.year+ "-" + (usr.joinDate.month.length == 1 ? "0" : "") + usr.joinDate.month;
-			return { 
+			return {
 				"date": date,
 				"total": 1
 			};
@@ -57,18 +70,21 @@ $.getJSON("name.json", function(json) {
 	});
 	// Clear the undefined ...
 	var clearUndefined = _.filter(one, function (param) {
-		 return param !== undefined;
-	 });
+		return param !== undefined;
+	});
 
 	// Secondly, get the total of user per month
 	var two = _.reduce(clearUndefined, function(prev, curr) {
-		 var found = _.find(prev, function(el) { return el.date === curr.date; });
-		 found ? (found.total += curr.total) : prev.push(_.clone(curr));
-		 return prev;
+		var found = _.find(prev, function(el) { return el.date === curr.date; });
+		found ? (found.total += curr.total) : prev.push(_.clone(curr));
+		return prev;
 	}, []);
 
 	// Third, sort the result by date
-	var three = _.sortBy(two, function(o) { return o.date; })
+	var three = _.sortBy(two, function(o) { return o.date; });
+
+	graph2 = three;
+
 	// Fourth update the total to get the previous result in consideration
 	var previous = 0;
 	var four = _.map(three, function(val) {
@@ -81,83 +97,150 @@ $.getJSON("name.json", function(json) {
 
 	graph1 = four;
 
-	var size = $("body").width();
+	// *********
+	// *********
+	// *********
 
+	var bodyWidth = $(window).width();
+ 	var bodyHeight = $(window).height();
 	// Common params for graph
 
-	var margin = {top: 10, right: 50, bottom: 20, left: 50},
-		width = size - margin.left - margin.right,
-		height = 800 - margin.top - margin.bottom;
+	var margin = {top: 10, right: 70, bottom: 50, left: 50},
+	width = bodyWidth - margin.left - margin.right,
+	height = bodyHeight - margin.top - margin.bottom;
 
 	var svg = d3.select("body").append("svg")
-		.attr("width", width + margin.left + margin.right)
-		.attr("height", height + margin.top + margin.bottom)
-		.append("g")
-		.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+	.attr("width", width + margin.left + margin.right)
+	.attr("height", height + margin.top + margin.bottom)
+	.append("g")
+	.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
 	// X axis
 
 	var x = d3.time.scale()
-		.domain([new Date(2006, 0, 1), new Date(2016, 11, 31)])
-		.nice(d3.time.week)
+		.domain([new Date(2006, 02), new Date(2016, 08)])
 		.range([0, width]);
 
 	var xaxis = d3.svg.axis().scale(x)
-		.orient("bottom").ticks(16).tickSize(10, 0);
+		.orient("bottom").ticks(16).tickSize(-height);
 
 	var xaxisg = svg.append("g")
-		.attr("class", "x axis")
+		.attr("class", "axis axis--x")
 		.attr("transform", "translate(0," + height + ")")
 		.call(xaxis);
 
-	xaxisg.selectAll("line").data(x.ticks(120), function(d) { return d; })
-		.enter()
-		.append("line")
-		.attr("class", "minor")
-		.attr("y1", 0)
-		.attr("y2", 5)
-		.attr("x1", x)
-		.attr("x2", x);
+	svg.append("text")
+		.attr("class", "label label--x")
+		.attr("text-anchor", "end")
+		.attr("x", width)
+		.attr("y", height + 30)
+		.text("Time (month, year)");
 
 	// Y axis
 
-	var y0 = d3.scale.linear().range([height, 0]);
-	y0.domain([0, graph1[graph1.length - 1].total]);
+	var totalUser  = graph1[graph1.length - 1].total;
 
+	// Left axis (percent of people total)
+	var y0 = d3.scale.linear().range([height, 0]);
+	y0.domain([0, totalUser]);
+
+	// Right axis (Number of people per day)
 	var y1 = d3.scale.linear().range([height, 0]);
+	y1.domain([0, 200]); // Here the value is 200
 
 	var yAxisLeft = d3.svg.axis().scale(y0)
-		.orient("left").ticks(5);
+		.orient("left").ticks(10).tickSize(-width).tickFormat(function(d) { return parseInt((d / totalUser) * 100, 10) + "%"; });
 
 	var yAxisRight = d3.svg.axis().scale(y1)
-		.orient("right").ticks(5); 
+		.orient("right").ticks(10);
 
 	svg.append("g")
-		.attr("class", "y axis")
-		.style("fill", "steelblue")
-		.call(yAxisLeft);	
+		.attr("class", "axis axis--y axis--yleft")
+		.call(yAxisLeft);
 
-	svg.append("g")				
-		.attr("class", "y axis")	
-		.attr("transform", "translate(" + width + " ,0)")	
-		.style("fill", "red")		
+	svg.append("text")
+		.attr("class", "label label--yleft")
+		.attr("text-anchor", "end")
+		.attr("x", -6)
+		.attr("y", -35)
+		.attr("transform", "rotate(-90)")
+		.text("Amount of users (%)");
+
+	svg.append("g")
+		.attr("class", "axis axis--y axis--yright")
+		.attr("transform", "translate(" + width + " ,0)")
 		.call(yAxisRight);
 
+	svg.append("text")
+		.attr("class", "label label--yright")
+		.attr("text-anchor", "end")
+		.attr("x", 0)
+		.attr("y", width + 45)
+		.attr("transform", "rotate(-90)")
+		.text("User added per month");
+
+
 	// LINE
+
 	var line = d3.svg.line()
 		.x(function(d) { return x(d.date); })
 		.y(function(d) { return y0(d.total); });
 
 	// DATAs
+
 	var parseDate = d3.time.format("%Y-%m").parse;
 
 	graph1.forEach(function(d) {
-        d.date = parseDate(d.date);
-        d.total = +d.total;
-    });
-	svg.append("path")        // Add the valueline path.
-		.style("stroke", "blue")
+		d.date = parseDate(d.date);
+		d.total = +d.total;
+	});
+
+	graph2.forEach(function(d) {
+		d.date = parseDate(d.date);
+		d.total = +d.total;
+	});
+
+	// BARS
+
+	svg.selectAll('rect')
+		.data(graph2)
+		.enter()
+		.append('rect')
+		.attr("class", "bars")
+		.attr('x', function (d) {
+			return x(d.date);
+		})
+		.attr('y', function (d) {
+			return height;
+		})
+		.attr('width', 1)
+		.attr("height", 0)
+		.transition()
+		.duration(200)
+		.delay(function (d, i) {
+			return i * 25;
+		})
+		.attr('y', function (d) {
+			return y1(d.total);
+		})
+		.attr("height", function(d) { return height - y1(d.total); })
+		.attr('fill', 'grey');
+
+
+	// LINE
+
+	var path = svg.append("path") // Add the line path.
+		.attr("class", "line1")
 		.attr("d", line(graph1));
+
+	var totalLength = path.node().getTotalLength();
+
+	path.attr("stroke-dasharray", totalLength + " " + totalLength)
+		.attr("stroke-dashoffset", totalLength)
+		.transition()
+		.duration(3025)
+		.ease("linear")
+		.attr("stroke-dashoffset", 0);
 
 });
 
