@@ -1,4 +1,7 @@
-// casperjs --web-security=no main2.js --ignore-ssl-errors=true
+/*
+  This file is using the twitter signup checker to verify if a username is available or not
+  casperjs --web-security=no main2.js --ignore-ssl-errors=true
+*/
 
 var startTime = Date.now();
 var fs = require('fs');
