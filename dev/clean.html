@@ -11,7 +11,7 @@
 	<script src="http://underscorejs.org/underscore-min.js"></script>
 
 	<script>
-		$.getJSON("result_full_data_FRnames.json", function(json) {
+		$.getJSON("resultFR_animals.json", function(json) {
 			var cleanJson = _.map(json, function(usr) {
 				var cleanUser = {
 					"username": "",
@@ -94,7 +94,7 @@
 				}
 			};
 
-			//downloadFile('name.json', JSON.stringify(cleanJson));
+			downloadFile('name_underscore1.json', JSON.stringify(cleanJson));
 
 		});
 	</script>
